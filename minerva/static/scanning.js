@@ -107,13 +107,14 @@ async function renderScans() {
         <div class="hint" style="margin-top:0">A source is anything you've scanned or photographed: a journal, a notebook, letters, old printouts or documents. Each one is a folder inside <b>${esc(data.scans_dir)}</b> with its PDFs or photos in a Scans folder.</div>
         <div id="source-list">
           ${data.sources.length ? data.sources.map(sourceCardHtml).join("") :
-            `<div class="hint">No sources yet. Create one below, then put its scans in its Scans folder.</div>`}
+            `<div class="hint">No sources yet. Bring scans in from a folder (Google Drive, Dropbox or OneDrive work too), or create one below and put its scans in its Scans folder.</div>`}
         </div>
         ${data.loose_files ? `<div class="hint warn-text">${data.loose_files} file${data.loose_files === 1 ? "" : "s"} sit directly in ${esc(data.scans_dir)}. Move them into a source folder to work with them.</div>` : ""}
         <div class="new-source">
           <input type="text" id="new-source-name" placeholder="New source, e.g. Old Letters">
           <button class="btn btn-small" id="new-source-btn">Add</button>
         </div>
+        <button class="btn btn-small btn-ghost si-open" id="scan-intake-btn" title="Copy scans in from Google Drive, Dropbox, OneDrive or any folder">Bring in scans from a folder…</button>
       </aside>
       <section class="scan-detail" id="scan-detail"></section>
     </div>`;
@@ -127,6 +128,8 @@ async function renderScans() {
       scanState.current = null;
       renderScans();
     }));
+  scanState.origins = data.origins || {};
+  document.getElementById("scan-intake-btn").addEventListener("click", () => openScanIntake());
   document.getElementById("new-source-btn").addEventListener("click", async () => {
     const name = document.getElementById("new-source-name").value.trim();
     if (!name) return;
@@ -158,12 +161,20 @@ async function renderSourceDetail() {
   const tabs = [["transcribe", "Transcribe"], ["proofread", "Proofread"], ["file", "File entries"]];
   el.innerHTML = `
     <div class="scan-detail-head">
-      <h2>${esc(scanState.source)}</h2>
+      <div class="scan-title">
+        <h2>${esc(scanState.source)}</h2>
+        ${(scanState.origins || {})[scanState.source] ? `<button class="btn btn-small btn-ghost" id="scan-check-new" title="${esc(scanState.origins[scanState.source].folder)}">Check for new scans</button>` : ""}
+      </div>
       <div class="dup-tabs">
         ${tabs.map(([k, label]) => `<button class="btn btn-small ${scanState.tab === k ? "" : "btn-ghost"}" data-scan-tab="${k}">${label}</button>`).join("")}
       </div>
     </div>
     <div id="scan-tab"></div>`;
+  const checkNew = document.getElementById("scan-check-new");
+  if (checkNew) checkNew.addEventListener("click", () => {
+    const o = scanState.origins[scanState.source];
+    openScanIntake({ folder: o.folder, source: scanState.source, subfolders: o.subfolders !== false });
+  });
   el.querySelectorAll("[data-scan-tab]").forEach((b) =>
     b.addEventListener("click", () => {
       if (!confirmDiscard()) return;

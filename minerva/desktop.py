@@ -169,7 +169,7 @@ def _selftest(url):
     try:
         page = urllib.request.urlopen(url, timeout=5).read().decode("utf-8")
         assert "onboarding.js" in page
-        for asset in ("static/app.js", "static/launch.js", "static/onboarding.js", "static/scanning.js", "static/sharing.js",
+        for asset in ("static/app.js", "static/launch.js", "static/onboarding.js", "static/scanning.js", "static/scanintake.js", "static/sharing.js",
                       "static/home.js", "static/submissions.js", "static/backup.js", "static/libcheck.js", "static/search.js", "static/compare.js", "static/goals.js", "static/focus.js", "static/venues.js", "static/categories.js", "static/images.js", "static/people.js", "static/views.js", "static/outline.js", "static/tags.js", "static/readaloud.js", "static/newentry.js", "static/fileimport.js", "static/findreplace.js", "static/firstrun.js", "static/help.js", "static/foldersync.js", "static/localai.js", "static/comingup.js", "static/snippets.js", "static/narration.js", "static/video.js", "static/grammar.js", "static/updates.js", "static/exportall.js", "static/research.js", "static/style.css",
                       "static/owl.svg", "static/owl-small.svg"):
             urllib.request.urlopen(url + asset, timeout=5).close()
