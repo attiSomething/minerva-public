@@ -2,25 +2,41 @@
 
 # Minerva
 
-*A writer's best friend.* Minerva is a desktop app for reviewing, categorizing and managing a body of writing: every draft kept, entries organized into projects, and the original scans one click away.
+*A writer's best friend.* Minerva is a desktop app for keeping a lifetime of writing in order: every draft kept, pieces gathered into projects, submissions tracked, and old notebooks scanned and turned back into text.
 
-Everything stays on your computer. Minerva works directly with ordinary folders and `.txt` files, so your writing is still readable without it.
+Everything stays on your computer. Minerva works directly with ordinary folders and `.txt` files, so your writing is still readable without it. AI features are optional and use your own key or a free model running on your computer.
+
+<p align="center"><img src="docs/screenshots/home.png" width="860" alt="Minerva's Home screen: writing streak, drafts saved per week and words by category"></p>
+
+## What it does
+
+- **Every draft kept.** Saving can archive the previous version first, and any two drafts can be compared side by side. Minerva never deletes your files.
+- **Bring writing in.** Paste pieces in, import Word, Google Docs, Markdown, RTF, ODT, HTML and PDF files, pull in Evernote, Google Keep and Notion exports, or keep an Obsidian vault in sync.
+- **Scans to text.** Transcribe photographed or scanned notebooks page by page, proofread each entry beside its page, and file it into your library.
+- **Projects and tags.** Group pieces into collections, order them in an outline, and export a manuscript as Word, PDF or EPUB.
+- **Submissions.** Track where each piece is out, deadlines and reading periods, fees and replies. Import from Submittable or The Grinder, or from confirmation emails.
+- **Writing tools.** Find and replace across drafts, a focus mode, grammar and style checks with LanguageTool, word goals and streaks, read-aloud and narration.
+- **Safe by design.** One-click backups, a library check on launch, an "export everything" bundle, and a sample library to try things in.
+
+| | |
+|---|---|
+| <img src="docs/screenshots/entries.png" alt="The Entries list with tags, projects and flags"> | <img src="docs/screenshots/editor.png" alt="Editing a poem, with notes, tags and AI suggestions beside it"> |
+| <img src="docs/screenshots/submissions.png" alt="Submissions with status, fees and expected reply dates"> | |
 
 ## Download
 
-Grab `Minerva.exe` from the latest [release](../../releases) (or from the **Minerva-windows** artifact of the latest [Build](../../actions/workflows/build.yml) run). It is a single file: double-click it to start. Windows 10 and 11 include the WebView2 runtime it uses for its window; if it is missing, Minerva opens in your web browser instead.
+Get the latest version from [Releases](../../releases). Minerva isn't code-signed yet, so your computer will ask you to confirm the first time you open it.
+
+- **Windows 10 or 11:** download `Minerva.exe` and double-click it. If Windows says it protected your PC, click **More info**, then **Run anyway**. Minerva updates itself when a new version comes out.
+- **macOS (Apple silicon):** download `Minerva-mac.zip`, unzip it and drag **Minerva** to Applications. The first time, open it, then go to **System Settings > Privacy & Security** and click **Open Anyway**.
+- **Linux (x86-64):** download `Minerva-linux.tar.gz`, extract it and run `./Minerva`. It needs a desktop with the usual graphics libraries (any recent Ubuntu, Fedora or Mint has them).
+
+If Minerva can't open its own window, it opens in your web browser instead.
 
 ## First run
 
-1. **Choose your library.** Open a folder that already holds your writing, or let Minerva create a new one with Fiction, Nonfiction, Poetry, Misc, Projects and Sources folders. Put scans, images and documents you want to work from in Sources.
-2. **AI-assisted scanning (optional).** Pick a provider and paste your own API key if you want an AI model to read handwritten pages and scans.
-3. **AI-assisted organizing and editing (optional).** The same, for suggestions about categories, projects, titles and duplicates.
-
-Supported providers are Anthropic (Claude), OpenAI, Google Gemini, and local models through Ollama. Keys are stored in Windows Credential Manager, never in your library, the app's settings file, or this repository.
-
-## Scans
-
-The **Scans** tab turns scanned pages (journals, notebooks, letters, old documents) into entries: transcribe each page with your scanning model, combine the results into a Master transcript, proofread it beside the page, then file entries into your library. **Ask Minerva** in the edit view suggests a title, category and project, or proofreads a draft. Every suggestion waits for you to apply it.
+1. **Choose your library.** Open a folder that already holds your writing, let Minerva create a new one, or explore the sample library first.
+2. **AI (optional).** For reading handwritten scans and for suggestions, set up a free model on your computer (one click on Windows), or paste a key from Anthropic (Claude), OpenAI or Google Gemini. Keys are kept in your system's credential store (Windows Credential Manager, macOS Keychain or the Linux Secret Service), never in your library or in Minerva's settings file.
 
 ## How a library is laid out
 
@@ -30,26 +46,23 @@ Poetry\
     Morning Tide [C].txt           current draft ([J] = transcribed original)
     Archive\                       every older draft
     Images\                        pictures that belong to the entry
+Sources\
+  Blue Notebook\Scans\             scanned pages of a notebook
 .minerva\                          Minerva's index (hidden)
 ```
 
-Minerva never deletes anything: saves can archive the previous draft first, restores archive the current one, and merges move the other entry's whole folder into this entry's Archive.
-
-Opening a library that was used with the first version of Minerva (`01A - Minerva\minerva.db`) copies that database once, read-only, so flags, projects and duplicate reviews come along.
-
 ## Running from source
+
+Needs Python 3.10 or newer.
 
 ```
 python -m pip install -r requirements-dev.txt
 python run_minerva.py            # native window
 python run_minerva.py --browser  # or in your browser
 python -m pytest                 # tests
-python packaging/build.py        # builds dist/Minerva.exe
+python packaging/build.py        # builds the app into dist/
 ```
 
-### Building Minerva.exe on your own computer
-
-To build it yourself, double-click **Build Minerva.bat** in a copy of this repository. It installs what the build needs, runs the tests, builds `dist\Minerva.exe` and runs the app's self-test, the same steps as the GitHub build. It needs Python 3.10 or newer (the GitHub build uses 3.12) installed with "Add python.exe to PATH" ticked.
+On Windows, **Build Minerva.bat** does all of that: it installs what the build needs, runs the tests, builds `dist\Minerva.exe` and runs the app's self-test.
 
 Tests use a small synthetic library. No real writing belongs in this repository.
-
