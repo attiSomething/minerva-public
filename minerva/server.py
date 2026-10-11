@@ -37,6 +37,7 @@ from . import updates
 from . import video
 from . import organizing
 from . import manuscript, notes, outline, pagelinks, people, scanning
+from . import scanintake
 from . import search
 from . import secrets_store
 from . import sharing
@@ -1625,6 +1626,7 @@ def api_scan_sources():
     data = scanning.list_sources()
     data["scans_dir"] = os.path.relpath(data["root"], core.ARCHIVE_ROOT)
     data["jobs"] = jobs.active("transcribe")
+    data["origins"] = scanintake.origins()
     return jsonify(data)
 
 
@@ -1633,6 +1635,36 @@ def api_create_source():
     body = request.get_json(force=True)
     scanning.create_source(body.get("name"))
     return jsonify(scanning.list_sources())
+
+
+@app.errorhandler(scanintake.IntakeError)
+def _scan_intake_error(e):
+    return jsonify({"error": str(e)}), 400
+
+
+# Bring in scans from a folder outside the library (a cloud folder, often)
+@app.route("/api/scan-intake/folders")
+def api_scan_intake_folders():
+    return jsonify({"cloud": scanintake.cloud_folders(), "origins": scanintake.origins()})
+
+
+@app.route("/api/scan-intake/preview", methods=["POST"])
+def api_scan_intake_preview():
+    body = request.get_json(force=True) or {}
+    return jsonify(scanintake.preview(body.get("folder"), body.get("source"), body.get("subfolders", True) is not False))
+
+
+@app.route("/api/scan-intake/run", methods=["POST"])
+def api_scan_intake_run():
+    body = request.get_json(force=True) or {}
+    folder, source = body.get("folder"), body.get("source")
+    subfolders = body.get("subfolders", True) is not False
+    scanintake.find_scans(folder, subfolders)  # a bad folder is reported now, not from the job
+    try:
+        job = jobs.start("scan-intake", source or "scans", lambda job: scanintake.bring_in(job, folder, source, subfolders))
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 409
+    return jsonify(job.to_dict())
 
 
 @app.route("/api/scans/<name>/status")

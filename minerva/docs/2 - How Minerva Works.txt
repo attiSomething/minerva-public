@@ -351,7 +351,16 @@ Scans
   letters, printouts, old typed drafts) into entries. Each of these is a
   "source": a folder in the library's scans folder (Sources\, or the first
   version's Journal Scans folder), with its PDFs or photos in a Scans\
-  subfolder. Pick one on the left, then work through three tabs:
+  subfolder.
+  "Bring in scans from a folder" copies scans in from anywhere else,
+  such as the Google Drive, Dropbox or OneDrive folder a phone scanner app
+  saves to. Minerva finds those cloud folders for you. The chosen folder
+  is only read: its PDFs and photos (and, if you like, those in folders
+  inside it) are copied into a source's Scans\ folder, and files the cloud
+  app hasn't downloaded yet are fetched as they're copied. Scans already
+  there are skipped, so "Check for new scans" on that source later copies
+  only what's new.
+  Pick a source on the left, then work through three tabs:
     Transcribe   Sends each page, as an image, to the model chosen for
                  AI-assisted scanning, and writes "<Source> N - Text.txt"
                  into Text Output\. Pages already read are kept in the

@@ -1487,3 +1487,13 @@ span.doc-anchor { background: var(--gold-light); border-radius: 3px; }
 .launch-trouble p { margin: 0 0 8px; }
 .launch-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .logs-recent { max-height: 320px; overflow: auto; margin: 12px 0 0; padding: 10px 12px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Bring in scans from a folder */
+.si-open { margin-top: 8px; width: 100%; }
+.si-cloud { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 10px 0; }
+#scan-intake-dialog .check-row { display: flex; gap: 8px; align-items: center; font-size: 14px; margin: 8px 0 0; }
+#scan-intake-dialog #si-source { width: 100%; }
+#scan-intake-dialog .profile-row #si-folder { flex: 1; min-width: 0; }
+.scan-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.si-preview { margin-top: 12px; min-height: 1.5em; }
+.si-sample { margin: 6px 0 0; padding-left: 18px; font-size: 13px; max-height: 160px; overflow-y: auto; }
