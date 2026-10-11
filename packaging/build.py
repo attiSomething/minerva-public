@@ -57,7 +57,10 @@ def main():
                  "--hidden-import", "PyQt6.QtWebEngineCore",
                  "--hidden-import", "PyQt6.QtWebChannel",
                  "--hidden-import", "PyQt6.QtNetwork",
-                 "--hidden-import", "PyQt6.QtPrintSupport"]
+                 "--hidden-import", "PyQt6.QtPrintSupport",
+                 # keyring reaches the Secret Service through these
+                 "--collect-submodules", "secretstorage",
+                 "--collect-submodules", "jeepney"]
     if sys.platform == "win32":
         args += ["--version-file", os.path.join(HERE, "version_info.txt")]
         # shown while the one-file app unpacks, before Python starts; the

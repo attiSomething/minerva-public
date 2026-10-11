@@ -10,3 +10,5 @@ reportlab>=4.2
 PyQt6>=6.5; sys_platform == "linux"
 PyQt6-WebEngine>=6.5; sys_platform == "linux"
 qtpy>=2.4; sys_platform == "linux"
+# where Linux keeps saved API keys (the Secret Service: GNOME Keyring, KWallet)
+SecretStorage>=3.3; sys_platform == "linux"

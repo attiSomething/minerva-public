@@ -164,6 +164,7 @@ def _selftest_bundled_libraries():
             importlib.import_module("WebKit")
         elif sys.platform.startswith("linux"):
             importlib.import_module("qtpy.QtWebEngineWidgets")
+            importlib.import_module("secretstorage")  # saved keys
 
 
 def _selftest(url):
