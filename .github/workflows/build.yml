@@ -5,7 +5,14 @@ on:
     branches: [main]
     tags: ["v*"]
   pull_request:
+  # Actions > Build > Run workflow builds all three apps; filling in a
+  # version (e.g. 0.8.0) also publishes them as release v0.8.0
   workflow_dispatch:
+    inputs:
+      release:
+        description: "Version to publish as a release (leave blank to only build)"
+        required: false
+        default: ""
 
 # Read-only by default; only the release job, which runs on version tags,
 # can write
@@ -95,12 +102,21 @@ jobs:
           retention-days: 3
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release != '')
     needs: [windows, mac, linux]
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('v{0}', inputs.release) }}
     steps:
+      - uses: actions/checkout@v4
+      # the app compares the release's version with its own to offer updates,
+      # so the two must agree
+      - name: Check the version matches the app
+        run: |
+          app=$(python3 -c "import re; print(re.search(r'__version__ = \"(.+?)\"', open('minerva/__init__.py').read()).group(1))")
+          if [ "v$app" != "$TAG" ]; then echo "Release $TAG doesn't match the app's version $app (minerva/__init__.py)"; exit 1; fi
       - uses: actions/download-artifact@v4
         with:
           path: out
@@ -110,6 +126,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
-          gh release create "${{ github.ref_name }}" --repo "${{ github.repository }}"
+          gh release create "$TAG" --repo "${{ github.repository }}" --target "${{ github.sha }}"
           out/Minerva.exe out/Minerva-mac.zip out/Minerva-linux.tar.gz
-          --title "Minerva ${{ github.ref_name }}" --generate-notes
+          --title "Minerva $TAG" --generate-notes
