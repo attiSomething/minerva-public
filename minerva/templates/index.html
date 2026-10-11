@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ theme }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="minerva-token" content="{{ token }}">
+<meta name="minerva-version" content="{{ version }}">
+<meta name="minerva-username" content="{{ username }}">
+<title>Minerva</title>
+<link rel="icon" type="image/svg+xml" href="/static/owl-small.svg">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topbar hidden" id="topbar">
+  <div class="brand"><img src="/static/owl.svg" alt="" class="brand-owl"><span>Minerva</span></div>
+  <nav class="tabs">
+    <button class="tab-btn" data-view="home">Home</button>
+    <button class="tab-btn" data-view="entries">Entries</button>
+    <button class="tab-btn" data-view="projects">Projects</button>
+    <button class="tab-btn" data-view="submissions">Submissions</button>
+    <button class="tab-btn" data-view="views">Views</button>
+    <button class="tab-btn" data-view="scans">Scans</button>
+    <button class="tab-btn" data-view="settings">Settings</button>
+    <button class="tab-btn" data-view="docs">Help</button>
+  </nav>
+  <div class="topbar-actions">
+    <span id="alerts-badge" class="alerts-badge hidden"></span>
+    <span id="sync-status" class="sync-status"></span>
+    <button id="rescan-btn" class="btn btn-ghost">Rescan</button>
+  </div>
+</header>
+
+<main id="app">
+  <div class="launch" id="launch" role="status" aria-live="polite">
+    <img src="/static/owl.svg" alt="" class="launch-owl">
+    <h1>Minerva</h1>
+    <div class="launch-bar" aria-hidden="true"><div class="launch-fill" id="launch-fill"></div></div>
+    <div class="launch-line"><span id="launch-label">Starting Minerva</span><span id="launch-pct" class="launch-pct">0%</span></div>
+    <div id="launch-trouble" class="launch-trouble hidden"></div>
+  </div>
+</main>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="/static/app.js"></script>
+<script src="/static/launch.js"></script>
+<script src="/static/categories.js"></script>
+<script src="/static/newentry.js"></script>
+<script src="/static/fileimport.js"></script>
+<script src="/static/findreplace.js"></script>
+<script src="/static/firstrun.js"></script>
+<script src="/static/help.js"></script>
+<script src="/static/localai.js"></script>
+<script src="/static/foldersync.js"></script>
+<script src="/static/images.js"></script>
+<script src="/static/people.js"></script>
+<script src="/static/views.js"></script>
+<script src="/static/outline.js"></script>
+<script src="/static/tags.js"></script>
+<script src="/static/readaloud.js"></script>
+<script src="/static/scanning.js"></script>
+<script src="/static/sharing.js"></script>
+<script src="/static/narration.js"></script>
+<script src="/static/video.js"></script>
+<script src="/static/grammar.js"></script>
+<script src="/static/updates.js"></script>
+<script src="/static/exportall.js"></script>
+<script src="/static/research.js"></script>
+<script src="/static/backup.js"></script>
+<script src="/static/libcheck.js"></script>
+<script src="/static/search.js"></script>
+<script src="/static/compare.js"></script>
+<script src="/static/goals.js"></script>
+<script src="/static/focus.js"></script>
+<script src="/static/comingup.js"></script>
+<script src="/static/home.js"></script>
+<script src="/static/snippets.js"></script>
+<script src="/static/submissions.js"></script>
+<script src="/static/venues.js"></script>
+<script src="/static/onboarding.js"></script>
+</body>
+</html>

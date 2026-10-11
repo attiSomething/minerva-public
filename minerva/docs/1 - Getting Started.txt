@@ -1,0 +1,164 @@
+GETTING STARTED
+
+Your library
+------------
+Minerva works with one folder on your computer: your library. Inside it,
+each top-level category folder (Fiction, Nonfiction, Poetry, Misc) holds one
+folder per entry:
+
+    Poetry\
+      The Cold Front Came - [MB]\        <- entry folder; "- [MB]" is a project tag
+        The Cold Front Came [C].txt     <- the current draft
+        Archive\                        <- every older draft, never deleted
+        Images\                         <- pictures that belong to the entry
+
+  [C] marks a current, composed draft.
+  [J] marks an original transcribed from a journal or scan.
+
+Put scans, photos and documents you want to work from in the Sources folder.
+
+Minerva keeps its own index in a hidden ".minerva" folder inside the
+library. Everything else stays as ordinary folders and .txt files, so your
+writing is still readable without Minerva.
+
+Minerva never deletes anything. Saving with "Archive current draft" moves
+the old version into Archive first, restoring an old draft archives the
+current one, and merging moves the other entry's whole folder into this
+entry's Archive.
+
+Your first piece, start to finish
+---------------------------------
+Home shows a "Getting started" card with four steps: bring in a draft
+(New entry, or Import files for Word, Google Docs, Markdown and others),
+open it in the editor, add a submission, and make a PDF. Each step says
+where that feature lives, ticks itself off when you do it anywhere in
+Minerva, and can be skipped. "Hide this" puts the card away for good.
+
+The sample library
+------------------
+Want to look around before pointing Minerva at your own writing? "Explore
+the sample library" (on the setup screen, the Getting started card, or
+Settings > Library) opens a small library of made-up poems, stories, a
+project and some submissions. It lives in its own folder beside Minerva's
+settings, never inside your library, so you can try anything. A strip on
+Home says when the sample is open, with "Back to my library" and "Start
+the sample over" (which puts it back the way it began).
+
+Synced folders (Obsidian and other notes)
+-----------------------------------------
+If you keep writing in Obsidian, or any folder of Markdown or text notes,
+add it under Settings > Synced folders. Minerva only reads that folder;
+it never changes, moves or deletes anything in it.
+
+Each time you open Home, Minerva looks for notes that are new or have
+changed since last time and lists them in a strip; nothing happens until
+you press Review. There you tick what to bring in: a new note becomes a
+new entry, and a changed note becomes a new version of its entry, with
+the old draft kept in Archive. If you've also edited that entry in
+Minerva since the last sync, it's marked and left unticked, so your edits
+are never replaced without you choosing it. "Don't offer this again"
+skips a note for good.
+
+"Folders and tags..." sets where notes go: each top folder in the notes
+folder picks a category (or "Don't bring in", for daily notes and the
+like), and anything else goes to the category you chose. Tags in a
+note's front matter or written as #tag become Minerva tags; rename one or
+leave it out on the same screen. Hidden folders such as .obsidian and
+.trash are skipped.
+
+AI features (optional)
+----------------------
+AI-assisted scanning and AI-assisted organizing are off unless you turn them
+on in Settings. You bring your own provider and key: Anthropic (Claude),
+OpenAI, Google Gemini, or a local model through Ollama. Keys are stored in
+Windows Credential Manager on this computer, not in your library.
+
+For the free, private route, press "Set up free local AI" (Settings > Free
+and private AI, the AI steps of setup, or the panel that appears when an
+AI feature is off). Minerva checks this computer's memory, graphics card
+and disk space, suggests a model sized to it with its download size and
+speed, then installs Ollama if needed, downloads the model, reads a test
+page with it and turns the features on.
+
+Typed and printed scans don't need AI at all: on Windows, Scans reads each
+page with Windows' own text recognition first, free and offline, and only
+sends handwritten pages to the AI model (or leaves them for later when AI
+is off). Settings > AI-assisted scanning can turn this off.
+
+Two how-tos on the Help tab cover cost and privacy: "Running AI on Your
+Computer" (free and private, with Ollama) and "Using an AI Service" (what
+Anthropic, OpenAI and Google charge and do with your writing). Every cost
+estimate in Minerva links to both, and so does the panel that appears if
+you use an AI feature while it's off.
+
+Coming up
+---------
+Home's "Coming up" panel lists the next 30 days: deadlines for planned
+submissions, venues whose reading period opens or closes (from the
+reading periods saved in Venues, such as "Sep to Nov, Feb to Apr"),
+submissions past the date a reply was expected, and pieces with a final
+draft that aren't out anywhere. It only appears when there's something
+in it.
+
+Goals
+-----
+On Home, "Set goals" takes a daily and/or weekly word goal. Progress counts
+words added across the whole library since the day (or week, from Monday)
+began, so cutting words counts against it. A project can have a target
+length too: set it on the project's page, and it shows on Home beside your
+other goals.
+
+Library check
+-------------
+Each time Minerva opens or rescans the library, it looks for things it
+can't make sense of: an entry folder with no draft (it won't show up in
+Entries), several drafts tagged [C], drafts that aren't saved as UTF-8 or
+can't be opened, empty drafts, and files sitting loose in a category
+folder. Home shows how many there are; "Review" lists them, with buttons to
+open the entry or show the file in its folder. Minerva only reports these;
+it never changes them. Settings > Library > "Check library" opens the same
+list.
+
+Switching libraries
+-------------------
+Settings > Library > "Open a different library…". Minerva remembers the
+last library you opened and goes straight back to it next time.
+
+Your name and style
+-------------------
+Settings > Customization. Your name is only used to greet you on Home;
+Minerva has no accounts. Pick a style to change how every page looks:
+Athena (the original blues and gold), Dark Athena, Tarofied, Fifth Impact
+or Liched Up. The how-to pictures follow the style too.
+
+Backups
+-------
+Settings > Backups. Choose a folder off this drive (OneDrive, an external
+drive, a USB stick), then press "Back up now". Each backup is one dated zip
+of your whole library, Minerva's index included; old backups are never
+overwritten or deleted, so remove ones you no longer want yourself.
+
+"Changes only" saves just the files changed since the last backup. It's
+quicker, but to restore you need the last full backup as well.
+
+Home reminds you when a backup is due; set how often (or never) under
+"Remind me on Home". To restore, unzip a backup somewhere and open that
+folder with "Open a different library…".
+
+Export everything
+-----------------
+Settings > Export everything makes a copy of all your work that opens
+without Minerva: every file in your library in its own folders, plus
+"Minerva records", which spell out what Minerva knows about your writing.
+Notes come out as Markdown; entries, tags, collections, projects, outlines,
+submissions, venues and people as spreadsheets (CSV, for Excel, Google
+Sheets or Numbers); goals and settings as plain text, with no keys or
+passwords. A README in the export says what each file is.
+
+Choose a folder outside your library and whether you want one .zip file or
+a folder. Scans, pictures and recordings are left out unless you tick
+"Include scans, pictures and recordings". Your library isn't changed.
+
+An export is for reading your work anywhere else, or keeping a copy in a
+form that will outlast any app. To move your library to a new computer or
+restore it into Minerva, use a backup instead.

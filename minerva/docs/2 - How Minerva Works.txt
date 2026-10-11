@@ -1,0 +1,581 @@
+HOW MINERVA WORKS
+
+What it is
+----------
+Minerva is a local control panel for a library of writing. It runs
+entirely on your own machine. The only time anything leaves it is when you
+turn on an AI feature and use it, and then only what you send to the
+provider you chose.
+
+Two layers of "truth"
+----------------------
+Minerva deliberately keeps two different things in two different places:
+
+1. Anything visible in a filename or folder name is stored the same way
+   the library is laid out: in the filesystem itself.
+     - An entry's current draft file: "<Title> [C].txt" or "<Title> [J].txt"
+       ([C] = clean/composed draft, [J] = still the raw journal-sourced text).
+     - A project tag: the entry's folder is suffixed " - [TAG]", e.g.
+       "Some Poem - [FC]".
+     - Category: which top-level folder the entry lives under. Fiction,
+       Nonfiction, Poetry and Misc to start with; add your own in Settings
+       or from an entry.
+     - History: an entry's Archive\ subfolder holds every older draft,
+       named "<Title> (edited <date>).txt" or similar. Nothing is ever
+       deleted - Minerva only ever moves files into Archive\ or restores
+       them back out.
+   Because this lives in the filesystem, it stays correct and readable even
+   if you never open Minerva again.
+
+2. Anything with no natural home in a filename lives in minerva.db, a small
+   SQLite database in the library's hidden .minerva folder:
+     - Flags: To Edit, Published (+ where), To Record.
+     - Duplicate-pair review status (unresolved / confirmed / not_duplicate
+       / merged) and the two sides' scores/notes.
+     - The has_journal_header check used by the "Needs Review" alert (see
+       below).
+     - source_journal / source_entry_num - which journal and entry number
+       an entry's text was originally transcribed from, used by the
+       Journal Scan panel (see below). Unlike everything else in
+       minerva.db, these two columns are "sticky": most of the database is
+       fully rebuilt from the filesystem on every sync, but a sync that
+       fails to detect a journal source for an entry leaves whatever value
+       was already stored alone rather than clearing it. This is what lets
+       the scan link survive an entry being edited and promoted to [C].
+   minerva.db is rebuilt/synced against the real folder structure every
+   time the app starts, and whenever you click Rescan, so it can't
+   silently drift out of sync with what's actually on disk. The one
+   exception: flags (and the sticky source_journal/source_entry_num pair
+   above) are keyed to an entry's current file path. If you rename or move
+   an entry's folder outside Minerva (in Explorer, say), the next rescan
+   treats it as a new entry and its flags reset. Anything done through
+   Minerva's own Rename / Project / Category controls updates the database
+   row in place instead, so that's always safe.
+
+The tabs
+--------
+Home
+  What's happening in the library: entries and words, drafts saved this
+  week and month (against the week and month before), your streak of
+  days with a saved draft, saves per week for the last 12 weeks, words by
+  category, what you worked on last, and the four illustrated how-tos
+  (also listed first under Help). Activity comes from the dates on your
+  draft and Archive files, read on every sync, so history from before
+  Minerva counts too. The library-size line starts the day you first open
+  this version and gains a point each day Minerva syncs.
+
+Entries
+  Browse, search, and filter every entry across Fiction, Nonfiction,
+  Poetry, and Misc. The table loads 25 rows at a time by default (a
+  dropdown above it switches to 50, 100, or All) - this is a deliberate
+  performance choice, not a bug; rendering all ~1,200 rows at once is what
+  caused startup lag before pagination existed.
+
+  New entry (on Home and above the Entries table) starts a piece without
+  leaving Minerva. Give it a title, a category and optionally a project,
+  and either leave the text empty to start writing or paste a draft in.
+  Minerva makes the entry's folder and current draft in the library, just
+  as you would by hand, and opens it. If the title is taken, it adds a
+  number ("Low Water (2)"). Pasting several pieces at once? When the text
+  has separator lines (***, ---, ===) or three blank lines between pieces,
+  tick "Split into separate entries" to see each piece with a title taken
+  from its first line. Change any title, then create them all at once.
+  One or two blank lines (a stanza break) never split a piece.
+
+  Import files (beside New entry) brings in drafts kept elsewhere: Word
+  (.docx), Google Docs (download as Microsoft Word first), OpenDocument
+  (.odt), Rich Text (.rtf), Markdown (.md), web pages (.html), text files
+  and PDFs that have text in them. Choose files, or a whole folder. Each
+  file is shown before anything is created: its title (from a heading at
+  the top of the file, or else the file name), category, word count and
+  anything that couldn't be carried over, such as images or tables. Line
+  breaks are kept exactly, which matters for poems; formatting is
+  dropped. A file whose title matches an entry you already have is left
+  unticked, in case it's the same piece. Tags in a Markdown file's front
+  matter become Minerva tags. A PDF that is only page images goes through
+  Scans instead. The files themselves are only read.
+
+  Search inside drafts: switch the search box from "Titles" to "Inside
+  drafts" to find words or a phrase in every current draft and every .txt
+  draft in each entry's Archive. Matching ignores capitals. Each result
+  shows the entry, which draft matched, and the matching lines with the
+  words highlighted; click the title to open the entry. Category and
+  Project filters still apply; tick "Current drafts only" to skip Archive
+  and notes. Entry notes are searched too, and show as "Notes".
+  The text index updates on every rescan and whenever you save in Minerva.
+  "Replace in drafts..." above the results changes a word or phrase in
+  the current drafts: Preview shows each matching line before and after,
+  untick any entry to leave it alone, then Replace. Each changed entry is
+  saved as a new version with its old draft moved to Archive, so any
+  replacement can be undone by restoring the old draft. The filters in
+  use (category, project, tag) limit which entries it touches.
+
+  Tags and collections: the Tag filter narrows the list (and draft search)
+  to entries with one tag; tags show beside each title. "Save these
+  filters..." at the top of the filters saves everything you've chosen
+  (search, Titles or Inside drafts, category, project, tag, flags) as a
+  named collection; click its name to bring those filters back, or x to
+  delete it. Saving under an existing name replaces it.
+
+Edit view (click any entry)
+  - Title panel: renames the entry - see "Renaming an entry" below.
+  - Notes: a place beside the draft for revision thoughts, research and
+    reminders that shouldn't go inside the text. Notes save themselves a
+    moment after you stop typing. They live in Minerva's own index
+    (.minerva), never in the entry's folder, so the library is untouched.
+    They follow the entry through renames and moves in Minerva, and when
+    another entry is merged in, its notes are added below. If an entry is
+    renamed outside Minerva and its notes can't find it on the next scan,
+    the notes are kept and listed in the Library check under "Notes
+    without an entry", where you can attach them to the right entry.
+    When an entry is moved to another category or project outside
+    Minerva, the next scan recognises it by its title and its notes,
+    tags, submissions and outline place follow it.
+  - Save (Overwrite draft): replaces the current draft file in place, no
+    archiving. For small fixes.
+  - Save (Archive current draft): moves the pre-edit version into Archive\
+    first, then saves your edit as the new current draft, always promoted
+    to [C] (a deliberately edited version is no longer the untouched
+    original, even if it started as [J]).
+  - Counts: the line under the title shows words, lines (with words on
+    them) and stanzas (groups of lines between blank ones), not counting
+    a transcription header. Entries has a Lines column too.
+  - Tags: any number of tags ("elegy", "submission-ready", a person's
+    name), so an entry can belong to several groups beyond its one
+    category and project. Type a tag and press Enter (commas add several);
+    x removes one. A tag that already exists keeps its spelling, so
+    "Elegy" and "elegy" stay one tag. Settings lists every tag with
+    Rename (renaming onto an existing tag joins them) and Remove (takes
+    it off every entry). Tags live in Minerva's index (.minerva) only.
+  - Flags: To Edit / To Record (checkboxes) and Published (+ free-text
+    "where").
+  - Project: tag or untag the entry to a project. Renames the folder with
+    the "- [TAG]" suffix.
+  - Category: move the entry to another category. Physically moves the
+    folder. "New category..." at the bottom of the list adds one and moves
+    the entry there (the same option is in the scans File entries table).
+  - Focus: the "Focus" button beside Save opens the draft full screen
+    with everything else hidden, in a larger serif type that follows your
+    style. The bar at the bottom shows the word count, words added this
+    session and, if you have a daily goal, today's progress including
+    unsaved words; it fades while you type. Ctrl+S saves (overwriting the
+    draft), Esc leaves. Changes made in Focus stay in the editor when you
+    leave, saved or not.
+  - Find: Ctrl+F (or the Find button) opens a bar above the draft.
+    Enter goes to the next match, Shift+Enter the previous one. Ctrl+H
+    opens it ready to replace: Replace changes the highlighted match,
+    Replace all changes every one. Match case and Whole words narrow it.
+    Replacements aren't saved until you save, and Ctrl+Z undoes them.
+  - Read aloud: the button beside Focus (also in Focus's bottom bar)
+    reads the draft with your computer's voices, a line at a time,
+    highlighting each line as it's read and pausing briefly between
+    stanzas. It starts at the cursor, or reads only the selection if you
+    have one, and skips a transcription header. Pause, Stop, a speed and
+    a voice are in the bar that appears; the speed and voice are
+    remembered. Voices installed on Windows work offline; any marked
+    "(online)" send the text to Microsoft's speech service. Typing stops
+    the reading and leaves the text as it was.
+  - Old Drafts (Archive): browse and restore any older draft. Restoring
+    archives the current draft first, nothing is deleted. "Compare drafts"
+    shows the word-by-word differences between any two drafts (current or
+    archived), inline or side by side; viewing an old draft offers
+    "Compare with current draft" too.
+  - Scanned Pages panel: see "Scanned Pages panel" below. Only appears
+    for entries that came from a scanned source.
+  - Merge Another Entry In: search for any other entry in the archive and
+    fold it into the one you're editing - see "Ad-hoc merge" below.
+
+People (under Entries)
+  Everyone your scanned journals mention. Pick a journal and press Find
+  people: its Master is sent, as text only, to the model you chose for
+  organizing and editing (one request for most journals; a very long one
+  is split). Before it runs, you see how many entries will be read and
+  roughly what that costs. Nothing is sent until you press the button.
+  The list shows each person's mentions, with the first and last date,
+  and opens to the entries themselves (and the filed library entry, when
+  there is one). Tick two names that are the same person (a nickname, a
+  misspelling) and press Merge. Every name they went by then points to
+  the merged person, including on later runs. Rename changes the name
+  shown. The list lives in Minerva's index; no file is written.
+
+Images (under Entries)
+  Every drawing or diagram in your transcribed scans, as a gallery. When a
+  page is transcribed, a drawing is described in [square brackets] on its
+  own line; any Master entry with such a line shows up here. Minerva
+  suggests a kind (Diagram, Drawing or Uncategorized) and a file name
+  built from the entry's date, title or description, and place. Change
+  either, tick the ones you want, and "Save images" copies those pages into
+  "<Source>\Images\<Kind>\". Drawings on a page that also has writing
+  start unticked. A name that's already taken gets a number added, so
+  nothing is overwritten. No model is used.
+
+Duplicates (under Entries)
+  The Duplicates strip at the top of the Entries tab, next to All entries
+  (the number beside it counts pairs still to decide). Every candidate
+  pair from the last duplicate-detection pass, in one place. Expand a pair for a side-by-side read of both entries' current
+  text, then mark it Not a Duplicate, Confirm Duplicate, or Merge. Merging
+  moves the losing entry's whole folder (including its own Archive) into
+  the kept entry's Archive as "Merged - <title>\" - nothing is deleted.
+  Three- and four-way duplicate clusters (e.g. one poem that ended up under
+  three different titles) aren't merged in one action; you merge two at a
+  time, repeating until only one is left. There's no elegant one-click way
+  to do this yet - see "Known Limitations and Open Items.txt".
+
+Projects
+  Each card shows a project's entries, words, category mix and when one of
+  its drafts was last edited. Click a card to open the project's page:
+  rename it, describe it, put its entries in reading order (used when you
+  export the project from its Publish panel), add entries by
+  searching their titles, or take entries out. Deleting a project (the x on
+  its card, or the button on its page) removes the project only: every
+  entry stays where it is, minus the " - [TAG]" suffix, and the project's
+  folder under Projects\ is left alone. If an entry can't drop its tag
+  because a folder with the plain name already exists, nothing is changed
+  and Minerva tells you which entry.
+
+  Outline: the project's page shows its pieces as an outline (List) or as
+  index cards (Cards); the choice is remembered. Each piece has a one-line
+  synopsis, a status (Idea, Drafting, Revising, Done) and notes. For an
+  entry these are its own notes, the same ones on its page. The counts
+  beside the Outline heading show how far along the project is. Reorder
+  with the arrows, or drag cards; this order is the order the project
+  exports in.
+  "Add placeholder" adds a slot for a piece you haven't written yet, with
+  a title, synopsis and notes of its own. When you're ready, open its
+  notes and either "Start writing", which creates the entry in the
+  category you pick (a folder named "<title> - [TAG]" holding an empty
+  current draft) and opens it, or "Link an existing entry", which puts an
+  entry you already have in the placeholder's place. Either way the
+  placeholder's synopsis, status and notes carry over. Outline details
+  live in Minerva's index (.minerva); only Start writing touches the
+  library, by creating that one new entry.
+
+Submissions
+  Where your pieces have been sent. Add a record from an entry's or a
+  project's Submissions panel, or from this tab: where it went, the status
+  (Planned, Submitted, Shortlisted, Accepted, Declined, Withdrawn), the
+  date submitted, the deadline, how many days a reply usually takes, the
+  fee and any notes. The tab lists every record with totals (waiting,
+  accepted and the share of replies that were acceptances, fees) and
+  filters by status, where, category, project, entries or projects,
+  submitted dates, or "Still waiting"; click a column to sort. A record
+  whose expected reply date has passed is marked Overdue, and Home shows
+  how many are waiting. Marking an entry's submission Accepted offers to
+  set its Published flag, then lists the piece's other submissions still
+  waiting (Submitted or Shortlisted) and offers to mark them Withdrawn, so
+  you remember to tell those venues. Records live in Minerva's index and keep the
+  piece's title, so they still read correctly if the entry is renamed
+  outside Minerva or the project is deleted. Deleting a record never
+  touches your writing.
+  "Venues" (at the top of the tab) lists every place you've sent work or
+  kept notes on: its website, reading periods, typical fee and reply time,
+  how many pieces went there and how many were accepted. Click one to edit
+  its notes and see everything you sent it. When you type a known venue in
+  a new submission, Minerva fills in its fee and expected reply from those
+  notes (or, without notes, from the last fee you paid and how long it
+  usually took to answer). A venue's notes can hold a line limit; adding
+  a submission of an entry that runs over it shows a warning (it doesn't
+  stop you).
+  "Import..." brings in records you kept in a spreadsheet. Save the sheet
+  as CSV (Excel: File > Save As > CSV; Google Sheets: File > Download >
+  CSV) and choose it. Minerva guesses which column holds the title, where
+  it went, the dates, status, fee and notes from the headings; change any
+  of them, and tick "Dates are written day first" if yours read 31/12/2024.
+  Every row is shown before anything is saved: ready, needs a match (no
+  entry or project has that title; click Match to pick one), a problem (a
+  date or status Minerva can't read, or no venue), or already recorded.
+  Skip any row you don't want. Afterwards Minerva lists each row it didn't
+  import and why, so you can fix them in the sheet and import it again;
+  rows already in Minerva are recognized and left alone. Your spreadsheet
+  and your writing aren't changed.
+  "Find places to send it" (in a piece's or project's Submissions panel)
+  ranks your own venues by fit: line limits, places that took your work
+  before, and places it's already been sent. That part never leaves the
+  computer. "Suggest places" then asks the AI you chose for organizing
+  and editing for magazines, presses and contests that publish that kind
+  of work. It sends the kind of writing, its length and tags, plus what
+  you type about it. The title and the writing itself go only if you tick
+  them, and "What the AI is told" shows it all first. Suggestions are
+  from the AI's memory and marked as not checked. "Check their website"
+  reads the venue's own home and guidelines pages and keeps only the
+  details it can quote from them, each linked to its page. "Add to
+  Venues" saves the venue, with those details and their sources in its
+  notes. Submission directories (Duotrope, Submittable, Chill Subs) are
+  never read, because their terms don't allow it.
+
+Grammar and style
+  Grammar, under the editor, lists suggestions from LanguageTool, a free,
+  open-source checker that runs on this computer: no AI, no account, and
+  nothing is sent anywhere. The first time, Minerva offers to download it
+  (about 300 MB with the Java runtime it needs; less if Java 17 or later
+  is already installed) into its settings folder. It starts when you check
+  and stops when Minerva closes.
+  Each suggestion shows the words in context and what's wrong. Pick a fix
+  to put it in the editor, Skip it, add a word to your own list so it's
+  never flagged again, or stop a kind of suggestion altogether. Nothing is
+  saved until you save the draft. Check as a poem (on for the Poetry
+  category and drafts with short lines) leaves capitals at the start of
+  lines, missing end punctuation and fragments alone.
+  Settings > Grammar and style sets the language, a picky mode with more
+  style suggestions, your word list, and turned-off suggestions. If you
+  already run a LanguageTool server, enter its address there instead.
+  Remove LanguageTool frees the disk space.
+
+Views
+  Overviews Minerva puts together from the library. Timeline has two
+  layouts. By journal lists each scanned journal in date order: the dates
+  it covers, how many entries it holds, where they were filed, and who it
+  mentions most (from People). By year groups every entry by the year it
+  was written. For an entry filed from a scan, that's the journal's date;
+  for anything else, it's the day its oldest file was saved. None of this
+  uses a model. Summarize, on a journal, asks the organizing model for its
+  major events, themes, places, people and projects. It shows the rough
+  cost first and keeps the answer until the journal's Master changes.
+  Save as text writes "Timeline (Minerva).txt" to the scans folder; the
+  previous copy goes to .minerva\backups, and other files such as
+  Chronology.txt are left alone.
+
+  People histories follows one person at a time through your journals.
+  Pick someone from the People list to see, in date order, the sentences
+  that name them in each entry. If none of an entry's sentences use their
+  name, its opening is shown instead. Write history sends just those
+  passages to the organizing model, which writes a short account of you
+  and that person; it shows the rough cost first. The account is kept
+  until their mentions or names change. Save as text writes every
+  history to "People Histories (Minerva).txt" in the scans folder, the
+  same way the Timeline file is written. Because this is the most
+  personal thing Minerva makes, it's only written when you press Save.
+
+Scans
+  Turns anything you've scanned or photographed (journals, notebooks,
+  letters, printouts, old typed drafts) into entries. Each of these is a
+  "source": a folder in the library's scans folder (Sources\, or the first
+  version's Journal Scans folder), with its PDFs or photos in a Scans\
+  subfolder. Pick one on the left, then work through three tabs:
+    Transcribe   Sends each page, as an image, to the model chosen for
+                 AI-assisted scanning, and writes "<Source> N - Text.txt"
+                 into Text Output\. Pages already read are kept in the
+                 hidden .minerva folder, so stopping and starting again
+                 never pays for a page twice. Under the button, Minerva
+                 shows how many pages the selection would send and about
+                 how many tokens; for Claude models it adds a price at
+                 Anthropic's list rates, and it asks before starting a job
+                 over $1 (or over 100 pages with other providers). The
+                 first guess is rough; after a few pages it uses the token
+                 counts your provider reported. "Build the Master" then
+                 combines finished scans into "<Source> - Master.txt":
+                 one numbered ENTRY per piece of writing (a page the model
+                 marked as continuing is joined to the one before it, even
+                 across two scan files), with notes on hard-to-read words
+                 at the end. Adding scans to an existing Master appends new
+                 entries after the last one.
+    Proofread    The entry's pages on one side, its text on the other, plus
+                 any notes about it. See "Which pages an entry is on"
+                 below. Saving changes only that entry in the Master. Minerva copies the Master into .minerva\backups\
+                 (once a day) before changing it, and refuses to save if
+                 the file changed on disk since you opened it.
+    File entries Makes chosen entries into ordinary library entries: a
+                 folder in the category you pick, holding "<Title> [J].txt"
+                 whose header names the source and entry number, so the
+                 entry's Scanned Pages panel can find its pages again.
+                 "Suggest titles and categories" asks the organizing model
+                 to fill in the table for you to check first. When one
+                 piece runs across several entries, press "join next" on
+                 each of them except the last. Filing the first one then
+                 makes a single library entry from all of them, and its
+                 Scanned Pages panel shows every one of their pages.
+  Proofreading and filing work without AI; only transcribing and the
+  suggestions need it.
+
+Ask Minerva (in the edit view)
+  With AI-assisted organizing turned on, "Suggest title, category and
+  project" proposes where an entry belongs (apply each part with Use), and
+  "Proofread this draft" shows suggested spelling and typo fixes word by
+  word. Nothing changes until you apply a suggestion and save.
+
+Settings
+  Switch libraries and turn the optional AI features on or off.
+  Categories lists your library's categories with how many entries each
+  holds. Add one (Minerva makes its folder, or adopts a folder of that name
+  that's already there), rename one (its folder is renamed and every entry
+  keeps its history, page links and submissions), or remove one that has
+  no entries (its folder is left in place).
+  Updates: Minerva checks once a day whether a new version is out (it asks
+  GitHub, where Minerva is published; nothing about you or your writing is
+  sent) and says so on Home. See what's new shows the changes; Update now
+  backs your library up first when a backup folder is set, downloads the
+  new Minerva.exe, checks it, and asks before closing and reopening as the
+  new version. The old one is kept beside it as Minerva.exe.old. Skip this
+  version stops the reminders for that version. Turn the daily check off,
+  or check now, under Settings > Updates.
+  Logs: Minerva keeps a log on this computer of how each launch went,
+  anything slow or stuck, and any errors. It never holds your writing,
+  though an error can name a file, and nothing is sent anywhere. Save logs
+  puts a .zip of them in your Downloads folder to share when something goes
+  wrong; Open logs folder shows where they live. The same buttons appear on
+  the launch screen if starting up stalls. Starting Minerva.exe with --logs
+  opens the folder without opening Minerva.
+
+Help
+  This tab.
+
+Renaming an entry
+------------------
+The Title panel in the edit view renames the entry's folder, its current
+draft file, and any Archive files that still start with the old title -
+all in one action, keeping the [C]/[J] tag and any project-tag suffix
+intact. It refuses to rename onto a name that's already in use in the same
+category, and refuses characters Windows won't allow in filenames
+(\ / : * ? " < > |). If any individual file couldn't be renamed for some
+reason (an unexpected filename, a filesystem error), the rename still
+completes for everything else and a warning banner tells you exactly which
+file was left behind and why - it never fails silently.
+
+Which pages an entry is on
+--------------------------
+A page (one page of one scan file) is the unit. Each Master entry is linked
+to the pages it's written on, in order: a long entry can run over several
+pages and from one scan file into the next, and one page can hold several
+short entries. These links are kept in Minerva's index, not in the Master.
+
+  - Entries Minerva transcribes itself remember the pages they came from.
+  - For older Masters, Minerva finds each entry's text in the source's
+    transcriptions (its own, or the "Text Output" files) and links the
+    pages it's on. The "(Scan X, Segment Y)" label is only used as a guess
+    when the text can't be found, because older labels often name the
+    wrong page even when the scan is right. The proofreader says when a
+    link is a guess or only partly matched.
+  - Drawings, diagrams and other pages that are mostly a [bracketed
+    description] match on that description, since it's copied word for
+    word from the transcription into the Master. Prose matches on its own
+    words, ignoring bracketed notes.
+  - In the proofreader, the chips above the page are the entry's pages.
+    "All pages together" shows them one under another. The arrows step
+    through the whole source, page by page across scan files, and "Also on
+    this page" lists other entries on the page you're looking at. "Add
+    page" and "Remove page" change the entry's pages; pages
+    you set by hand are never changed by "Match pages again".
+
+Scanned Pages panel
+-------------------
+Every entry filed from a scanned source carries a header written at
+filing time, e.g.:
+
+    Source: Blue Notebook Journal
+    ...
+    Source: Entry 52
+
+(or "Source entries: Blue Notebook - Master.txt, Entry 52" - both forms are
+understood. "Journal" is just part of the header's format; any source
+works.) On every sync, Minerva looks for that header in an entry's current
+draft; if the entry has since been edited into a [C] draft that no longer
+repeats the header, it falls back to searching every file in that entry's
+own Archive\ folder for it instead. Whichever source/entry number is found
+is saved on the entry's database row and reused from then on - so once an
+entry's source has been identified, editing or promoting the draft
+afterwards doesn't lose it (see "Two layers of truth" above for why this
+is stored differently from most of the database).
+
+With a source identified, the panel lists the entry's pages (see "Which
+pages an entry is on" above), with buttons to view them, open the scan
+file, or jump to the proofreader to change them, plus a short excerpt of
+the transcript for quick reference. If the source hasn't been transcribed
+yet (no Master.txt), or the entry number can't be found in it, the panel
+says so plainly instead of just not appearing. If no source has ever been
+detected for an entry, the panel doesn't appear at all.
+
+Final drafts and sharing
+------------------------
+"Mark as final" in an entry's Share panel copies the current draft to
+"<Title> (final).txt" in the entry's Final\ folder. The current draft
+stays where it is and you can keep editing it; the panel says when it no
+longer matches the final. Marking a new final (or unmarking) moves the old
+one into Archive\ as "<Title> (final until <date>).txt", so nothing is
+lost. An Archive file can be marked final too, with its "Final" button.
+
+Export writes a .txt, Word (.docx) or PDF copy into the library's Exports\
+folder, using the final draft if there is one. Exports never overwrite
+each other: a second export of the same thing is saved as "(2)", and so
+on. The transcription header (Source / Category / Date) is left out.
+
+Templates (Settings > Export templates) give an export your own layout. In
+a Word template, {{title}}, {{body}}, {{category}}, {{date}} and
+{{author}} are filled in, and the body takes the style of the paragraph
+it replaces. A PDF template's first page is drawn behind every page, like
+letterhead, and sets the page size. Templates are kept in .minerva\.
+
+A project's Publish panel exports the whole project in its set order, as
+a PDF proof, a Word manuscript, plain text or an EPUB ebook. Choose a page size (US
+Letter, A4, A5, 6x9, 5.5x8.5 or 5x8 inches); add a subtitle, author,
+copyright line, ISBN and other details for the title and copyright pages;
+and add front and back cover images (.jpg or .png), which are scaled to
+fill the page. Entries start on a new page with the contents page listing
+them, and the proof is numbered from the first entry.
+
+The Publish panel also has a dedication, an epigraph, acknowledgments and
+an about-the-author page; each one left empty is left out. The dedication
+and epigraph come before the contents, the other two after the last
+entry, and the last two can be filled from a snippet. EPUB makes an ebook
+with the same pages, a contents list readers can jump from and the front
+cover, ready for Apple Books, Kobo, Amazon KDP or Draft2Digital.
+
+Narration: Narrate in an entry's Share panel, or Audio in a project's
+Publish panel, reads it into an audio file in Exports. Choose this
+computer's voices (Windows' own, free, and nothing leaves the computer) or
+ElevenLabs with your own key, kept in Windows Credential Manager; the
+window shows how many ElevenLabs credits it will use and how many are
+left. A project can be one file with a chapter per piece, or a file per
+piece. MP3s are made by FFmpeg, which Minerva downloads once (about 31 MB)
+into its settings folder when first needed; WAV needs nothing extra. Where
+each line falls in the audio is kept in .minerva\narrations.
+
+Video: Video (next to Narrate or Audio) makes an MP4 from a narration,
+showing the words a stanza at a time with the line being read picked out.
+Choose square, vertical or widescreen, and the project's front cover, a
+picture of your own or a plain background. It's made on this computer by
+the same audio and video tool and saved in Exports.
+
+Standard manuscript: the plain format most magazines and contests ask
+poets for. Pick "Standard manuscript" as the Layout when exporting an
+entry, or as the Page size in a project's Publish panel. Each piece starts
+on a new US Letter page with your name and contact details at the top
+left and its line count at the top right, then the title in capitals,
+then the text in 12 pt Times New Roman, single-spaced, with a blank line
+between stanzas. A stanza is kept whole on one page when it fits, and
+later pages carry a "Surname / TITLE / page" header. A project in this
+layout gets a cover page with your details, the title and how many
+pieces it holds. Fill in your details under Settings > Manuscript
+details; they're kept in Minerva's settings on this computer, not in the
+library.
+
+Ad-hoc merge
+-------------
+The "Merge Another Entry In" panel (in the edit view) lets you search for
+any entry in the archive and fold it into the one you're currently
+editing - not just entries Minerva already paired up as likely duplicates
+under Entries > Duplicates. The entry you search for and choose is merged in
+exactly like a Duplicates-tab merge: its whole folder (including its own
+Archive) moves into the kept entry's Archive as "Merged - <title>\",
+nothing is deleted, and if the kept entry doesn't have a journal source
+yet, Minerva checks the newly-merged-in Archive\ contents for one
+immediately (rather than waiting for the next sync).
+
+This is meant for exactly the case of finding a raw journal entry that's
+really the original of an existing [C] draft (e.g. something already
+tracked as a draft): merge the journal entry into the
+draft, and it becomes that draft's "OG draft" in Archive\, with its scan
+link preserved and attached to the entry you'll actually keep working
+from.
+
+Needs Review alert
+-------------------
+Every sync checks each [J]-tagged entry's text for that same journal-source
+header (current draft, then falling back to Archive\ as described above).
+If an entry is tagged [J] (meaning it's expected to be journal-sourced)
+but no header is detected anywhere, it's flagged has_journal_header = 0 in
+the database. The topbar shows a small red badge whenever one or more
+entries are flagged this way; clicking it jumps to the Entries tab with a
+"Needs Review" filter already applied. This exists so that an edit (or an
+unusual import) that accidentally strips or garbles an entry's Source
+header doesn't just silently lose its link to its scanned pages - you'll see it
+flagged instead.

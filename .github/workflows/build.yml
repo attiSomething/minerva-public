@@ -1,0 +1,59 @@
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+# Read-only by default; only the Windows job, which publishes releases from
+# version tags, can write
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install Flask keyring anthropic pypdfium2 Pillow python-docx reportlab pytest
+      - run: python -m pytest -q
+
+  # Pull requests run only the Linux tests; the Windows build runs on main,
+  # on release tags, and by hand (Actions > Build > Run workflow)
+  windows:
+    if: github.event_name != 'pull_request'
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q
+      - run: python packaging/build.py
+      - name: Smoke-test the built app
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath dist\Minerva.exe -ArgumentList "--selftest" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Minerva.exe self-test failed with exit code $($p.ExitCode)" }
+          "Self-test passed"
+      # each build is ~45 MB, so it's kept only long enough to download;
+      # builds worth keeping go out as releases
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Minerva-windows
+          path: dist/Minerva.exe
+          retention-days: 3
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" dist/Minerva.exe --title "Minerva ${{ github.ref_name }}" --generate-notes

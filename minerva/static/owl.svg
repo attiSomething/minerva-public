@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Minerva owl">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f5bb7"/>
+      <stop offset="1" stop-color="#1a3473"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6dc85"/>
+      <stop offset="0.55" stop-color="#dcae2f"/>
+      <stop offset="1" stop-color="#b08214"/>
+    </linearGradient>
+  </defs>
+
+  <!-- seal: a single gold ring, so the owl can fill most of the face -->
+  <circle cx="128" cy="128" r="125" fill="url(#sky)"/>
+  <circle cx="128" cy="128" r="117" fill="none" stroke="url(#gold)" stroke-width="7"/>
+
+  <!-- the owl, scaled up to fill the seal -->
+  <g transform="translate(128 136) scale(1.24) translate(-128 -133)">
+    <g fill="none" stroke="url(#gold)" stroke-linejoin="round" stroke-linecap="round">
+      <!-- head and body outline: angular, carved -->
+      <path stroke-width="7.5" d="M80 62 L100 82 L128 74 L156 82 L176 62 L180 104 L176 150 L158 186 L128 204 L98 186 L80 150 L76 104 Z"/>
+      <!-- eyes -->
+      <circle cx="106" cy="110" r="17" stroke-width="7"/>
+      <circle cx="150" cy="110" r="17" stroke-width="7"/>
+      <!-- beak -->
+      <path stroke-width="6.5" d="M120 124 L128 142 L136 124"/>
+      <!-- brow rune -->
+      <path stroke-width="5.5" d="M90 90 L106 96 L128 88 L150 96 L166 90"/>
+      <!-- breast feathers as runes -->
+      <path stroke-width="5.5" d="M128 152 v34 M128 162 l-12 -10 M128 162 l12 -10 M128 176 l-10 -8 M128 176 l10 -8"/>
+      <path stroke-width="4.5" d="M100 158 l8 12 l-8 12 M156 158 l-8 12 l8 12"/>
+    </g>
+    <!-- pupils -->
+    <circle cx="106" cy="110" r="7" fill="#f6dc85"/>
+    <circle cx="150" cy="110" r="7" fill="#f6dc85"/>
+  </g>
+</svg>
