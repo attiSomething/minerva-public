@@ -2,8 +2,10 @@
 
     python packaging/build.py
 
-Produces dist/Minerva.exe on Windows (dist/Minerva elsewhere): a single file
-with the server, the page, and the help docs inside it.
+Produces, with the server, the page and the help docs inside:
+- Windows: dist/Minerva.exe, a single file
+- macOS: dist/Minerva.app
+- Linux: dist/Minerva, a single file (its window uses Qt's web view)
 """
 
 import os
@@ -24,11 +26,9 @@ def main():
     args = [
         os.path.join(ROOT, "run_minerva.py"),
         "--name", "Minerva",
-        "--onefile",
         "--windowed",
         "--noconfirm",
         "--clean",
-        "--icon", os.path.join(HERE, "minerva.ico"),
         "--add-data", data("minerva/templates"),
         "--add-data", data("minerva/static"),
         "--add-data", data("minerva/docs"),
@@ -44,6 +44,23 @@ def main():
         "--workpath", os.path.join(ROOT, "build"),
         "--specpath", os.path.join(ROOT, "build"),
     ]
+    if sys.platform == "darwin":
+        # a one-file .app unpacks itself on every launch and macOS frowns
+        # on it, so the Mac build is a normal app folder
+        args += ["--onedir", "--icon", os.path.join(HERE, "owl-512.png"),
+                 "--osx-bundle-identifier", "io.github.attisomething.minerva"]
+    else:
+        args += ["--onefile", "--icon", os.path.join(HERE, "minerva.ico")]
+    if sys.platform.startswith("linux"):
+        args += ["--hidden-import", "qtpy",
+                 "--hidden-import", "PyQt6.QtWebEngineWidgets",
+                 "--hidden-import", "PyQt6.QtWebEngineCore",
+                 "--hidden-import", "PyQt6.QtWebChannel",
+                 "--hidden-import", "PyQt6.QtNetwork",
+                 "--hidden-import", "PyQt6.QtPrintSupport",
+                 # keyring reaches the Secret Service through these
+                 "--collect-submodules", "secretstorage",
+                 "--collect-submodules", "jeepney"]
     if sys.platform == "win32":
         args += ["--version-file", os.path.join(HERE, "version_info.txt")]
         # shown while the one-file app unpacks, before Python starts; the
