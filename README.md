@@ -66,3 +66,7 @@ python packaging/build.py        # builds the app into dist/
 On Windows, **Build Minerva.bat** does all of that: it installs what the build needs, runs the tests, builds `dist\Minerva.exe` and runs the app's self-test.
 
 Tests use a small synthetic library. No real writing belongs in this repository.
+
+## License
+
+Minerva is released under the [MIT License](LICENSE).
