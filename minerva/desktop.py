@@ -155,6 +155,15 @@ def _selftest_bundled_libraries():
         c.setFont(sharing._fonts()["regular"], 12)
         c.drawString(72, 72, "Minerva \u2014 \u201cself-test\u201d")
         c.save()
+    # the window: Windows uses its own WebView2 and macOS its WebKit, both
+    # reached through pywebview; the Linux build carries Qt's web view
+    if getattr(sys, "frozen", False):
+        import importlib
+        importlib.import_module("webview")
+        if sys.platform == "darwin":
+            importlib.import_module("WebKit")
+        elif sys.platform.startswith("linux"):
+            importlib.import_module("qtpy.QtWebEngineWidgets")
 
 
 def _selftest(url):

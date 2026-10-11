@@ -6,3 +6,7 @@ pypdfium2>=4.30
 Pillow>=10.0
 python-docx>=1.1
 reportlab>=4.2
+# Linux has no built-in web view, so the packaged app brings Qt's
+PyQt6>=6.5; sys_platform == "linux"
+PyQt6-WebEngine>=6.5; sys_platform == "linux"
+qtpy>=2.4; sys_platform == "linux"

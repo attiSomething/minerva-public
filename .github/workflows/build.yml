@@ -2,13 +2,13 @@ name: Build
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
-# Read-only by default; only the Windows job, which publishes releases from
-# version tags, can write
+# Read-only by default; only the release job, which runs on version tags,
+# can write
 permissions:
   contents: read
 
@@ -23,13 +23,12 @@ jobs:
       - run: pip install Flask keyring anthropic pypdfium2 Pillow python-docx reportlab pytest
       - run: python -m pytest -q
 
-  # Pull requests run only the Linux tests; the Windows build runs on main,
-  # on release tags, and by hand (Actions > Build > Run workflow)
+  # The app builds run on main, on version tags, and by hand (Actions >
+  # Build > Run workflow); pull requests run only the tests above. Each build
+  # is kept a few days for downloading; versions worth keeping are releases.
   windows:
     if: github.event_name != 'pull_request'
     runs-on: windows-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -44,16 +43,73 @@ jobs:
           $p = Start-Process -FilePath dist\Minerva.exe -ArgumentList "--selftest" -Wait -PassThru
           if ($p.ExitCode -ne 0) { throw "Minerva.exe self-test failed with exit code $($p.ExitCode)" }
           "Self-test passed"
-      # each build is ~45 MB, so it's kept only long enough to download;
-      # builds worth keeping go out as releases
       - uses: actions/upload-artifact@v4
         with:
           name: Minerva-windows
           path: dist/Minerva.exe
           retention-days: 3
+
+  mac:
+    if: github.event_name != 'pull_request'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q
+      - run: python packaging/build.py
+      - name: Smoke-test the built app
+        run: dist/Minerva.app/Contents/MacOS/Minerva --selftest
+      # ditto keeps the app's symlinks and permissions, which a plain zip loses
+      - run: ditto -c -k --keepParent dist/Minerva.app Minerva-mac.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Minerva-mac
+          path: Minerva-mac.zip
+          retention-days: 3
+
+  linux:
+    if: github.event_name != 'pull_request'
+    # the oldest supported runner, so the app runs on older Linux systems too
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # what Qt's web view needs to load, here and on users' computers
+      - run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0 libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libasound2
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q
+      - run: python packaging/build.py
+      - name: Smoke-test the built app
+        run: QT_QPA_PLATFORM=offscreen dist/Minerva --selftest
+      # a tarball keeps the "can run" permission, which a zip loses
+      - run: tar -czf Minerva-linux.tar.gz -C dist Minerva
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Minerva-linux
+          path: Minerva-linux.tar.gz
+          retention-days: 3
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, mac, linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      # the Windows file keeps its name: the app's update check looks for it
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" dist/Minerva.exe --title "Minerva ${{ github.ref_name }}" --generate-notes
+        run: >
+          gh release create "${{ github.ref_name }}" --repo "${{ github.repository }}"
+          out/Minerva.exe out/Minerva-mac.zip out/Minerva-linux.tar.gz
+          --title "Minerva ${{ github.ref_name }}" --generate-notes

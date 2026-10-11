@@ -6,6 +6,7 @@ the repo. API keys are not kept here; see secrets_store.py.
 
 import json
 import os
+import sys
 
 FEATURES = ("scanning", "organizing")
 # the styles in Settings > Customization; the first is the default
@@ -20,6 +21,8 @@ def config_dir():
     if os.name == "nt":
         base = os.environ.get("APPDATA") or os.path.expanduser("~")
         return os.path.join(base, "Minerva")
+    if sys.platform == "darwin":
+        return os.path.join(os.path.expanduser("~"), "Library", "Application Support", "Minerva")
     base = os.environ.get("XDG_CONFIG_HOME") or os.path.join(os.path.expanduser("~"), ".config")
     return os.path.join(base, "minerva")
 
